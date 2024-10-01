@@ -51,6 +51,7 @@ if uploaded_file:
         st.toast('Information Fetching Successful!', icon='✅')
         with st.sidebar:
             st.header("Chip Information")
+            st.sidebar.title("IC Chip AI")
             st.subheader("Uploaded Images")
             st.image(image, caption='Uploaded Image.', use_column_width=True)
             st.subheader("Chip Type")
