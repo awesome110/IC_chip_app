@@ -20,7 +20,7 @@ QUERY = "Could you please provide more information about the following chip type
 st.title("Circuit Analyzer")
 # image
 st.image(IMAGE_ADDRESS, caption = "Circuit Master")
-
+st.sidebar.title("IC Chip AI")
 # Upload image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
@@ -51,7 +51,6 @@ if uploaded_file:
         st.toast('Information Fetching Successful!', icon='✅')
         with st.sidebar:
             st.header("Chip Information")
-            st.sidebar.title("IC Chip AI")
             st.subheader("Uploaded Images")
             st.image(image, caption='Uploaded Image.', use_column_width=True)
             st.subheader("Chip Type")
