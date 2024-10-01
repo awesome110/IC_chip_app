@@ -20,7 +20,7 @@ QUERY = "Could you please provide more information about the following chip type
 st.title("Circuit Analyzer")
 # image
 st.image(IMAGE_ADDRESS, caption = "Circuit Master")
-st.sidebar.title("IC Chip AI")
+
 # Upload image
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
