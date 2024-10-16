@@ -1,50 +1,28 @@
+from openai import OpenAI
 import streamlit as st
-from PIL import Image
-import rag as rag_utils
+from rag import QA_MODEL, streaming_question_answering, get_similar_context
 
-IMAGE_ADDRESS = "https://cdn.shopify.com/s/files/1/0552/3269/2430/articles/learning-electronics-comprehensive-guide-for-beginners.webp?v=1702560862"
-IMAGE_NAME = "uploaded_image.png"
-QUERY = "Could you please provide more information about the following chip type {chip}"
+st.title("Circuit Assistant 🤖")
 
-# main web comps
-# title
-st.title("Circuit Analyzer")
-# image
-st.image(IMAGE_ADDRESS, caption = "Circuit Master")
+# set openai key
+client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"])
 
-# Upload image
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = QA_MODEL
 
-if uploaded_file:
-    # open the image
-    image = Image.open(uploaded_file)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    # display the image
-    st.header("Uploaded Image")
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-    # save the image as a PNG file
-    image.save(IMAGE_NAME)
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-    # analyse the image
-    with st.spinner("Classifying the chip type......"):
-        get_chip_type = rag_utils.call_vision_api(IMAGE_NAME)
-        st.toast('Chip Classification Successful!', icon='✅')
-
-    if not get_chip_type:
-        st.error("Cannot Interpret the Image", icon = "❌")
-        st.stop()
-
-    # set the chip type
-    st.subheader("Identified Chip Type: {}".format(get_chip_type))
-    with st.spinner("Getting More Information"):
-        get_info = rag_utils.generate_answer(QUERY.format(**{"chip":get_chip_type}))
-        st.toast('Information Fetching Successful!', icon='✅')
-        with st.sidebar:
-            st.header("Chip Information")
-            st.subheader("Uploaded Images")
-            st.image(image, caption='Uploaded Image.', use_column_width=True)
-            st.subheader("Chip Type")
-            st.markdown(f"Chip Type: :red[{get_chip_type}]")
-            st.subheader("More Information of the Chip")
-            st.write(get_info)
+    with st.chat_message("assistant"):
+        pinecone_context = get_similar_context(prompt)
+        response = st.write_stream(streaming_question_answering(prompt, pinecone_context))
+    st.session_state.messages.append({"role": "assistant", "content": response})
